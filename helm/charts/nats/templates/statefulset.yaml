@@ -356,44 +356,16 @@ spec:
           value: "{{ tpl (print $value) $ }}"
         {{- end }}
 
-        {{- if .Values.cluster.authorization }}
-        {{- if .Values.cluster.authorization.existingSecret }}
-        - name: CLUSTER_AUTHORIZATION_USER
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.cluster.authorization.existingSecret }}
-              key: {{ .Values.cluster.authorization.secretKeys.userKey | default "user" }}
-        - name: CLUSTER_AUTHORIZATION_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.cluster.authorization.existingSecret }}
-              key: {{ .Values.cluster.authorization.secretKeys.passwordKey | default "password" }}
-        {{- else }}
-        - name: CLUSTER_AUTHORIZATION_USER
-          value: {{ .Values.cluster.authorization.user }}
-        - name: CLUSTER_AUTHORIZATION_PASSWORD
-          value: {{ .Values.cluster.authorization.password }}
-        {{- end }}
+        {{- with .Values.cluster.authorization }}
+        {{- $cluster_auth := merge (dict) . }}
+        {{- $_ := set $cluster_auth "envPrefix" "CLUSTER" }}
+        {{- tpl (include "nats.authenticationEnv" $cluster_auth) $ | nindent 8 }}
         {{- end }}
         
-        {{- if .Values.gateway.authorization }}
-        {{- if .Values.gateway.authorization.existingSecret }}
-        - name: GATEWAY_AUTHORIZATION_USER
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.gateway.authorization.existingSecret }}
-              key: {{ ((.Values.gateway.authorization.secretKeys).userKey) | default "user" }}
-        - name: GATEWAY_AUTHORIZATION_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.gateway.authorization.existingSecret }}
-              key: {{ ((.Values.gateway.authorization.secretKeys).passwordKey) | default "password" }}
-        {{- else }}
-        - name: GATEWAY_AUTHORIZATION_USER
-          value: {{ .Values.gateway.authorization.user }}
-        - name: GATEWAY_AUTHORIZATION_PASSWORD
-          value: {{ .Values.gateway.authorization.password }}
-        {{- end }}
+        {{- with .Values.gateway.authorization }}
+        {{- $gateway_auth := merge (dict) . }}
+        {{- $_ := set $gateway_auth "envPrefix" "GATEWAY" }}
+        {{- tpl (include "nats.authenticationEnv" $gateway_auth) $ | nindent 8 }}
         {{- end }}
 
         volumeMounts:
