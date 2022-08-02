@@ -310,7 +310,7 @@ spec:
 
         command:
         {{- if .Values.nats.command }}
-        {{- range .Values.command }}
+        {{- range .Values.nats.command }}
           - {{ . }}
         {{- end }}
         {{- else }}
